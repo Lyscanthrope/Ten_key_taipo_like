@@ -91,7 +91,7 @@ def layout_cost(layout, char_freq=char_freq, bigram_freq=bigram_freq):
         effort = press_count  # Penalize more fingers pressed
         total_cost += (effort * char_freq.get(char, 0))
         for i,same in enumerate(list_same_finger) :
-            finger_cost = 0.005*max(i-1,0)
+            finger_cost = 0.01*max(i-1,0)
             finger_count=bin(chord & same).count('1')
             if finger_count ==2 :
                 total_cost+=0.5# this is for penalizing the vertical combo
@@ -137,7 +137,6 @@ def crossover(parent1, parent2):
     return child
 
 
-@njit
 def mutate(layout, ergonomic_chords):
     if random.random() < MUTATION_RATE:
         # Pick a random character to mutate
@@ -176,7 +175,6 @@ def genetic_algorithm():
             child = crossover(p1, p2)
             child = mutate(child, ergonomic_chords)
             next_gen.append(child)
-            print("toto")
         
         population = next_gen  # Move to next generation
     
