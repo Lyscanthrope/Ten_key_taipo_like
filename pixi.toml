@@ -1,0 +1,19 @@
+[project]
+authors = ["Lyscanthrope <88078403+Lyscanthrope@users.noreply.github.com>"]
+channels = ["conda-forge"]
+name = "Ten_key_taipo_like"
+platforms = ["win-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python=">3.12"
+matplotlib = "*"
+numpy = "*"
+pandas = "*"
+scipy = "*"
+seaborn = "*"
+tqdm = "*"
+ipykernel = "*"
+numba = "*"
