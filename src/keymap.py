@@ -45,7 +45,7 @@ def plot_layout_nicer(layout,ergonomic_matrix,chars):
     fig,ax=plt.subplots(len(reordered_chord)//4,4,figsize=(9,len(reordered_chord)/3))
     ax=ax.flatten()
     for i in range(len(reordered_chord)):
-        ax[i].imshow(reordered_chord[i].reshape((2,4)),aspect="auto",cmap="gray")
+        ax[i].imshow(reordered_chord[i].reshape((2,4)),aspect="auto",cmap="Blues")
         ax[i].set_title(chars[i])
         ax[i].set_yticks([])
         ax[i].set_xticks([])
@@ -54,11 +54,13 @@ def plot_layout_nicer(layout,ergonomic_matrix,chars):
 
 
 #@njit
-def mutate(layout,mutation_rate):
+def mutate(layout,mutation_rate,max_mutation=5):
+    n_mut=random.randint(0,max_mutation)
     if random.random() < mutation_rate:
-        # Pick a random character to mutate
-        i1,i2=np.random.choice((len(layout)),2)
-        layout[i1],layout[i2] = layout[i2],layout[i1] # Swap the two characters
+        for i in range(n_mut):
+            # Pick a random character to mutate
+            i1,i2=np.random.choice((len(layout)),2)
+            layout[i1],layout[i2] = layout[i2],layout[i1] # Swap the two characters
     return layout
 
 #@njit
@@ -76,7 +78,7 @@ def crossover(parent1, parent2):
     not_in_p1=[i for i in parent2 if i not in list(child)]
     #we fill with the remaining index, in the same order
     child[child==-1]=not_in_p1
-    return child
+    return child.tolist()
 
 def check_uniqueness_of_chords(layout):
     myset=set(layout)
