@@ -5,12 +5,12 @@ from numba import njit
 import numba as nb
 
 NUM_KEYS=8
-def generate_ergonomic_chords():
+def generate_ergonomic_chords(n_fingers=3):
     """Generate a list of all possible chords that are ergonomically friendly. This is a mtrix of all possible combinations by the number of keys)"""
     ergonomic_chords = []
     for i in range(1, 2**NUM_KEYS):  # Iterate through all possible chords
         finger_count = bin(i).count('1')  # Count fingers used
-        if 1<=finger_count <= 3 : # Favor simpler chords
+        if 1<=finger_count <= n_fingers : # Favor simpler chords
             ergonomic_chords.append(i)
     ergonomic_matrix=[]
     for chord in ergonomic_chords:
@@ -35,6 +35,23 @@ def plot_layout(layout,ergonomic_matrix,chars):
     plt.imshow(reordered_chord,aspect="auto")
     plt.yticks(range(len(chars)),chars)
     plt.show()
+
+def plot_layout_nicer(layout,ergonomic_matrix,chars):
+    """Plot the layout of a given list of chords"""
+    #reorder the dictionnary
+    reordered_chord=ergonomic_matrix.copy()
+    # sorted_index=np.argsort(layout)
+    reordered_chord=get_chords(layout,ergonomic_matrix,chars)
+    fig,ax=plt.subplots(len(reordered_chord)//4,4,figsize=(9,len(reordered_chord)/3))
+    ax=ax.flatten()
+    for i in range(len(reordered_chord)):
+        ax[i].imshow(reordered_chord[i].reshape((2,4)),aspect="auto",cmap="gray")
+        ax[i].set_title(chars[i])
+        ax[i].set_yticks([])
+        ax[i].set_xticks([])
+    plt.tight_layout()
+    plt.show()
+
 
 #@njit
 def mutate(layout,mutation_rate):
