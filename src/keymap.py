@@ -2,7 +2,7 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 from numba import njit
-
+import numba as nb
 
 NUM_KEYS=8
 def generate_ergonomic_chords():
@@ -33,17 +33,17 @@ def plot_layout(list_chords,list_chars):
     plt.axis("off")
     plt.show()
 
-@njit
+#@nb.jit(nb.i8(nb.types.Array(nb.b1, 2, "C")), nopython=True)
 def hashable_chord(chord=np.array([[]])):
     """Return the chord as a string"""
-    return str(chord)
+    return hash(str(chord))
 
 
-@njit
+#@njit
 def mutate(layout, ergonomic_chords,mutation_rate):
     if random.random() < mutation_rate:
         # Pick a random character to mutate
-        index_to_mutate = random.choice(range(len(layout)))
+        index_to_mutate = np.random.choice((len(layout)))
         #print("char to mutate: ", char_to_mutate, "layout: ",
 
         # Get all currently used chords
@@ -55,17 +55,19 @@ def mutate(layout, ergonomic_chords,mutation_rate):
         available_chords = [chord for chord in ergonomic_chords if hashable_chord(chord) not in used_chords]
 
         if available_chords:
-            new_chord = random.choice(available_chords)  # Pick a random available chord
+            new_index=np.random.choice(len(available_chords))  # Pick a random available chord
+            new_chord = available_chords[new_index]
+
             layout[index_to_mutate] = new_chord  # Assign new chord
 
     return layout
 
-@njit
+#@njit
 def crossover(parent1, parent2):
-    """a lot of fiddling with tuple of flattened array to allow to pass it into a set !"""
+    """a lot of fiddling with hashing to allow to pass it into a set !"""
     # Step 1: Take first half from parent1
-    child = [None]*len(parent1)
-    assigned_chords = [hashable_chord(np.array([[]]))]#set(hashable_chord(np.array([[]])))
+    child = list([np.array([[True]])]*len(parent1))
+    # assigned_chords = [hashable_chord(np.array([[]]))]#set(hashable_chord(np.array([[]])))
     assigned_chords=set()
     cut = random.randint(1, len(parent1) - 2) 
 
@@ -74,23 +76,27 @@ def crossover(parent1, parent2):
     for r in random_index:
         child[r] = parent1[r]
         assigned_chords.add(hashable_chord(parent1[r]))
-        # assigned_chords.append(hashable_chord(parent1[r]))
+        #assigned_chords.append(hashable_chord(parent1[r]))
 
 
     # Step 2: Fill remaining characters from parent2, ensuring no duplicates
     for index in range(len(parent2)):
-        if child[index] is None:
+        if len(child[index])==1:
+            # print(assigned_chords)
+            # print(hashable_chord(parent2[index]))
+            # print(20*"=")
             if hashable_chord(parent2[index]) not in assigned_chords:
+                # print("entering gere")
                 child[index] = parent2[index]  # Directly assign if unused
                 assigned_chords.add(hashable_chord(parent2[index]))
-                # assigned_chords.append(hashable_chord(parent2[index]))
+                #assigned_chords.append(hashable_chord(parent2[index]))
             else:
                 # Step 3: Resolve conflicts by finding an available chord
                 for chord in parent1:
                     if hashable_chord(chord) not in assigned_chords:
                         child[index] = chord
                         assigned_chords.add(hashable_chord(chord))
-                        # assigned_chords.append(hashable_chord(chord))
+                        #assigned_chords.append(hashable_chord(chord))
                         break
 
     return child
