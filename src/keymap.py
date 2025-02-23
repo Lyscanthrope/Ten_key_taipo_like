@@ -6,7 +6,7 @@ import numba as nb
 
 NUM_KEYS=8
 def generate_ergonomic_chords():
-    """Generate a list of all possible chords that are ergonomically friendly. This is a list of matrixes of shape (2, 4)"""
+    """Generate a list of all possible chords that are ergonomically friendly. This is a mtrix of all possible combinations by the number of keys)"""
     ergonomic_chords = []
     for i in range(1, 2**NUM_KEYS):  # Iterate through all possible chords
         finger_count = bin(i).count('1')  # Count fingers used
@@ -14,95 +14,58 @@ def generate_ergonomic_chords():
             ergonomic_chords.append(i)
     ergonomic_matrix=[]
     for chord in ergonomic_chords:
-        ergonomic_matrix.append(np.array([c=='1' for c in bin(chord)[2:].zfill(NUM_KEYS)]).reshape((2,4)))
-    return ergonomic_matrix
+        ergonomic_matrix.append(np.array([c=='1' for c in bin(chord)[2:].zfill(NUM_KEYS)]))
+    return np.array(ergonomic_matrix)
 
 # Generate an initial random layout
-def generate_random_layout(ergonomic_chords,list_chars):
-    """list_chars is a list of characters that will be used to generate a random layout (a list of possible chords)"""
-    random.shuffle(ergonomic_chords)
-    list_chords=[]
-    for i in range(len(list_chars)):
-        list_chords.append(ergonomic_chords[i])
-    return list_chords
+def generate_random_layout(n_combination):
+    """a layout is a correspondance table between the matrix and the characeter. it is a list of index."""
+    list_of_index=list(range(n_combination))
+    random.shuffle(list_of_index)
+    return list_of_index
 
-def plot_layout(list_chords,list_chars):
+
+def plot_layout(layout,ergonomic_matrix,chars):
     """Plot the layout of a given list of chords"""
-    plt.figure()
-    plt.imshow(np.concatenate(list_chords,axis=0),aspect="auto")
-    plt.axis("off")
+    #reorder the dictionnary
+    reordered_chord=ergonomic_matrix.copy()
+    # sorted_index=np.argsort(layout)
+    reordered_chord=get_chords(layout,ergonomic_matrix,chars)
+    plt.figure(figsize=(6,12))
+    plt.imshow(reordered_chord,aspect="auto")
+    plt.yticks(range(len(chars)),chars)
     plt.show()
 
-#@nb.jit(nb.i8(nb.types.Array(nb.b1, 2, "C")), nopython=True)
-def hashable_chord(chord=np.array([[]])):
-    """Return the chord as a string"""
-    return hash(str(chord))
-
-
 #@njit
-def mutate(layout, ergonomic_chords,mutation_rate):
+def mutate(layout,mutation_rate):
     if random.random() < mutation_rate:
         # Pick a random character to mutate
-        index_to_mutate = np.random.choice((len(layout)))
-        #print("char to mutate: ", char_to_mutate, "layout: ",
-
-        # Get all currently used chords
-        used_chords = set()
-        for chord in layout:
-            used_chords.add(hashable_chord(chord))# Get all currently used chords in a hashable format
-
-        # Find an unused ergonomic chord
-        available_chords = [chord for chord in ergonomic_chords if hashable_chord(chord) not in used_chords]
-
-        if available_chords:
-            new_index=np.random.choice(len(available_chords))  # Pick a random available chord
-            new_chord = available_chords[new_index]
-
-            layout[index_to_mutate] = new_chord  # Assign new chord
-
+        i1,i2=np.random.choice((len(layout)),2)
+        layout[i1],layout[i2] = layout[i2],layout[i1] # Swap the two characters
     return layout
 
 #@njit
 def crossover(parent1, parent2):
     """a lot of fiddling with hashing to allow to pass it into a set !"""
     # Step 1: Take first half from parent1
-    child = list([np.array([[True]])]*len(parent1))
+    child = np.array([-1]*len(parent1))
     # assigned_chords = [hashable_chord(np.array([[]]))]#set(hashable_chord(np.array([[]])))
-    assigned_chords=set()
-    cut = random.randint(1, len(parent1) - 2) 
+    n_cut = random.randint(1, len(parent1) - 2) 
 
-    random_index=np.random.choice(len(parent1), size=cut,replace=False)
-    #random_index=random.sample(range(len(parent1)), cut)
-    for r in random_index:
-        child[r] = parent1[r]
-        assigned_chords.add(hashable_chord(parent1[r]))
-        #assigned_chords.append(hashable_chord(parent1[r]))
-
-
-    # Step 2: Fill remaining characters from parent2, ensuring no duplicates
-    for index in range(len(parent2)):
-        if len(child[index])==1:
-            # print(assigned_chords)
-            # print(hashable_chord(parent2[index]))
-            # print(20*"=")
-            if hashable_chord(parent2[index]) not in assigned_chords:
-                # print("entering gere")
-                child[index] = parent2[index]  # Directly assign if unused
-                assigned_chords.add(hashable_chord(parent2[index]))
-                #assigned_chords.append(hashable_chord(parent2[index]))
-            else:
-                # Step 3: Resolve conflicts by finding an available chord
-                for chord in parent1:
-                    if hashable_chord(chord) not in assigned_chords:
-                        child[index] = chord
-                        assigned_chords.add(hashable_chord(chord))
-                        #assigned_chords.append(hashable_chord(chord))
-                        break
-
+    p1=np.array(parent1)
+    # p2=np.array(parent2)
+    random_index=np.random.choice(len(parent1), size=n_cut,replace=False)
+    child[random_index]=p1[random_index]
+    not_in_p1=[i for i in parent2 if i not in list(child)]
+    #we fill with the remaining index, in the same order
+    child[child==-1]=not_in_p1
     return child
 
 def check_uniqueness_of_chords(layout):
-    myset=set()
-    for l in layout:
-        myset.add(hashable_chord(l))
+    myset=set(layout)
     return len(myset)==len(layout)
+
+def get_chords(layout,ergo_chords,chars):
+    ordered_chords=ergo_chords[layout,:]
+    ordered_chords=ordered_chords[:len(chars)]
+    return ordered_chords
