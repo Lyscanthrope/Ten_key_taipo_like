@@ -65,20 +65,23 @@ def mutate(layout,mutation_rate,max_mutation=5):
 
 #@njit
 def crossover(parent1, parent2):
-    """a lot of fiddling with hashing to allow to pass it into a set !"""
     # Step 1: Take first half from parent1
-    child = np.array([-1]*len(parent1))
-    # assigned_chords = [hashable_chord(np.array([[]]))]#set(hashable_chord(np.array([[]])))
-    n_cut = random.randint(1, len(parent1) - 2) 
+    n_cut = random.randint(1, len(parent1) - 5) 
+    if parent1==parent2:
+        return parent1
 
-    p1=np.array(parent1)
-    # p2=np.array(parent2)
+    # index o remove
     random_index=np.random.choice(len(parent1), size=n_cut,replace=False)
-    child[random_index]=p1[random_index]
-    not_in_p1=[i for i in parent2 if i not in list(child)]
+    for r in random_index:
+        parent1[r] = -1  # we mark the index to remove
+
+    not_in_p1=[i for i in parent2 if i not in parent1]
     #we fill with the remaining index, in the same order
-    child[child==-1]=not_in_p1
-    return child.tolist()
+    for i,v in enumerate(parent1):
+        if v==-1:
+            parent1[i] = not_in_p1.pop(0)
+ 
+    return parent1
 
 def check_uniqueness_of_chords(layout):
     myset=set(layout)

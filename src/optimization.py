@@ -45,8 +45,8 @@ def layout_cost(layout, char_freqs, bigram_freq,ergo_chords):
     prohibited_chords=(ordered_chords@list_prohibited.T>2).sum()
 
     total_cost+=total_finger_press
-    total_cost+=same_col_chords*5
-    total_cost+=bigram_cost
+    total_cost+=same_col_chords*1
+    total_cost+=bigram_cost*2
 
-    total_cost+=prohibited_chords*5
+    total_cost+=prohibited_chords*3
     return total_cost
