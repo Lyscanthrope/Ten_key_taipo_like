@@ -3,6 +3,7 @@ import random
 import matplotlib.pyplot as plt
 from numba import njit
 import numba as nb
+import pickle
 
 NUM_KEYS=8
 def generate_ergonomic_chords(n_fingers=3):
@@ -91,3 +92,12 @@ def get_chords(layout,ergo_chords,chars):
     ordered_chords=ergo_chords[layout,:]
     ordered_chords=ordered_chords[:len(chars)]
     return ordered_chords
+
+def save_keymaps(best_keymap,ergo_chords,chars):
+    with open(r'./results/best_keymap.pkl', 'wb') as f:  # Python 3: open(..., 'wb')
+        pickle.dump([best_keymap,ergo_chords,chars], f)
+
+def load_keymaps():
+    with open(r'./results/best_keymap.pkl','rb') as f:  # Python 3: open(..., 'rb')
+        best_keymap,ergo_chords,chars = pickle.load(f)
+        return best_keymap,ergo_chords,chars

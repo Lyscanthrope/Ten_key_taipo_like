@@ -3,7 +3,7 @@ from src import keymap
 from numba import njit
 
 homerow_coef=0.9
-relative_weighting=np.array([1.4,1.2,1.,1.,1.4*homerow_coef,1.2*homerow_coef,1.*homerow_coef,1.*homerow_coef])
+relative_weighting=np.array([1.6,1.3,1.,1.,1.4*homerow_coef,1.3*homerow_coef,1.*homerow_coef,1.*homerow_coef])
 index=[0,0,0,1]*2
 majeur=[0,0,1,0]*2
 annulaire=[0,1,0,0]*2
